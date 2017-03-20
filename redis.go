@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
-	"github.com/nemesisesq/ss_data_service/common"
 	"gopkg.in/redis.v5"
 )
 
@@ -33,7 +32,9 @@ func NewRedisAccessor(addr, pass string, db int) (*RedisAccessor, error) {
 	logrus.Info(addr)
 
 	pong, err := client.Ping().Result()
-	common.Check(err)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("redis %v", pong)
 
 	return &RedisAccessor{*client, addr, pass, db}, nil
