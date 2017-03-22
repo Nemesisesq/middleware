@@ -18,15 +18,6 @@ func NewDatabase(databaseAccessor DatabaseAccessor) *Database {
 	return &Database{databaseAccessor}
 }
 
-func (d *Database) Middleware() negroni.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request, next http.HandlerFunc) {
-		reqSession := d.dba.Clone()
-		defer reqSession.Close()
-		d.dba.Set(request, reqSession)
-		next(writer, request)
-	}
-}
-
 type DatabaseAccessor struct {
 	*mgo.Session
 	url  string
@@ -52,8 +43,18 @@ func NewDatabaseAccessor(url, name, coll string) (*DatabaseAccessor, error) {
 	}
 }
 
-func (da *DatabaseAccessor) Set(request *http.Request, session *mgo.Session) {
+func (da *DatabaseAccessor) Set(request *http.Request, session *mgo.Session) context.Context {
 	db := session.DB(da.name)
-	context.WithValue(request.Context(), "db", db)
-	context.WithValue(request.Context(), "mgoSession", session)
+	ctx := context.WithValue(request.Context(), "db", db)
+	ctx = context.WithValue(ctx, "mgoSession", session)
+	return ctx
+}
+
+func (d *Database) Middleware() negroni.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request, next http.HandlerFunc) {
+		reqSession := d.dba.Clone()
+		defer reqSession.Close()
+		ctx := d.dba.Set(request, reqSession)
+		next(writer, request.WithContext(ctx))
+	}
 }
