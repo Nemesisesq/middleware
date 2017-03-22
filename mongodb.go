@@ -1,12 +1,13 @@
 package middleware
 
-
 import (
-"net/http"
+	"net/http"
 
-"github.com/codegangsta/negroni"
+	"github.com/codegangsta/negroni"
 	"gopkg.in/mgo.v2"
 	"context"
+	"crypto/tls"
+	"net"
 )
 
 type Database struct {
@@ -26,10 +27,6 @@ func (d *Database) Middleware() negroni.HandlerFunc {
 	}
 }
 
-
-
-
-
 type DatabaseAccessor struct {
 	*mgo.Session
 	url  string
@@ -38,7 +35,16 @@ type DatabaseAccessor struct {
 }
 
 func NewDatabaseAccessor(url, name, coll string) (*DatabaseAccessor, error) {
-	session, err := mgo.Dial(url)
+
+	tlsConfig := &tls.Config{}
+	tlsConfig.InsecureSkipVerify = true
+
+	dialInfo, err := mgo.ParseURL(url)
+	dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+		conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
+		return conn, err
+	}
+	session, err := mgo.DialWithInfo(dialInfo)
 	if err == nil {
 		return &DatabaseAccessor{session, url, name, coll}, nil
 	} else {
