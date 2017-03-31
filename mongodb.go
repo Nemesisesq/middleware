@@ -3,10 +3,10 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/codegangsta/negroni"
-	"gopkg.in/mgo.v2"
 	"context"
 	"crypto/tls"
+	"github.com/codegangsta/negroni"
+	"gopkg.in/mgo.v2"
 	"net"
 )
 

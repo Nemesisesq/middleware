@@ -57,5 +57,5 @@ func (ca *redisClient) Middleware() negroni.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request, next http.HandlerFunc) {
 		ctx := ca.rca.Set(request, ca.rca.client)
 		next(writer, request.WithContext(ctx))
-}
+	}
 }
