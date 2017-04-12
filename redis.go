@@ -2,12 +2,11 @@ package middleware
 
 import (
 	"context"
-	"net/http"
-
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
+	"net/http"
 )
 
 type RedisAccessor struct {
